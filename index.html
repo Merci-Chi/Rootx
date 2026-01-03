@@ -1349,15 +1349,47 @@ function onPickChoice(isCorrect, correctCard, pickedName, btn){
   const buttons = Array.from(els.choices.querySelectorAll("button.choice"));
   buttons.forEach(b=> b.disabled = true);
 
-  if(isCorrect){
-    btn.classList.add("correct");
-    els.quizFeedback.style.display = "block";
-    els.quizFeedback.textContent = "Correct: " + correctCard.name;
-    els.quizFeedback.style.color = "rgba(120,255,170,.95)";
+if(isCorrect){
+  btn.classList.add("correct");
+  els.quizFeedback.style.display = "block";
+  els.quizFeedback.textContent = "Correct: " + correctCard.name + " — next.";
+  els.quizFeedback.style.color = "rgba(120,255,170,.95)";
 
-    els.goodBtn.disabled = false;
-    els.easyBtn.disabled = false;
-    els.againBtn.disabled = false; // allow manual override
+  // Count correct as "Good" by default, then auto-advance
+  markCard(correctCard.id, 1);
+  saveUI();
+
+  // Update meta line immediately
+  els.studyMeta.textContent = correctCard.category + " • Box " + STATE.cards[correctCard.id].box +
+    " • Seen " + STATE.cards[correctCard.id].seen + " • Correct " + STATE.cards[correctCard.id].correct + " • Wrong " + STATE.cards[correctCard.id].wrong;
+
+  // Move to next question
+  setTimeout(() => {
+    loadStudyCard(pickNextDue(), true);
+    renderList();
+  }, 350);
+
+} else {
+  btn.classList.add("wrong");
+  // highlight correct
+  buttons.forEach(b=>{
+    if(b.textContent === correctCard.name) b.classList.add("correct");
+  });
+  els.quizFeedback.style.display = "block";
+  els.quizFeedback.textContent = "Wrong: you picked “" + pickedName + "”. Correct is “" + correctCard.name + "”.";
+  els.quizFeedback.style.color = "rgba(255,140,140,.95)";
+
+  els.againBtn.disabled = false;
+  els.goodBtn.disabled = true;
+  els.easyBtn.disabled = true;
+
+  // auto mark as again unless user overrides
+  markCard(correctCard.id, 0);
+  saveUI();
+  els.studyMeta.textContent = correctCard.category + " • Box " + STATE.cards[correctCard.id].box +
+    " • Seen " + STATE.cards[correctCard.id].seen + " • Correct " + STATE.cards[correctCard.id].correct + " • Wrong " + STATE.cards[correctCard.id].wrong;
+}
+
   }else{
     btn.classList.add("wrong");
     // highlight correct
